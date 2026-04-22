@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netcore Cloud — JS Integration via Google Tag Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --nc-orange: #F4531C;
+    --nc-orange-light: #FEF0EB;
+    --nc-orange-mid: #FAC9B3;
+    --nc-dark: #0F0D0A;
+    --nc-surface: #FAF9F7;
+    --nc-card: #FFFFFF;
+    --nc-border: #E8E4DF;
+    --nc-muted: #8A8580;
+    --nc-text: #1A1714;
+    --nc-code-bg: #1A1714;
+    --nc-code-text: #E8D5C0;
+    --nc-step-line: #DDD8D2;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--nc-surface);
+    color: var(--nc-text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ── HERO ─────────────────────────────────────────── */
+  .hero {
+    background: var(--nc-dark);
+    color: #fff;
+    padding: 72px 48px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(244,83,28,0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(244,83,28,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(244,83,28,0.15);
+    border: 1px solid rgba(244,83,28,0.35);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #FFB89A;
+    margin-bottom: 28px;
+    font-weight: 500;
+  }
+  .hero-badge span {
+    width: 6px; height: 6px;
+    background: #F4531C;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 58px);
+    font-weight: 300;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: #FFB89A;
+  }
+  .hero-sub {
+    font-size: 16px;
+    color: #A09890;
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .hero-stat {
+    border-left: 2px solid rgba(244,83,28,0.5);
+    padding-left: 16px;
+  }
+  .hero-stat-val {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-stat-label {
+    font-size: 12px;
+    color: #706860;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── LAYOUT ───────────────────────────────────────── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  section {
+    padding: 64px 40px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── SECTION HEADER ───────────────────────────────── */
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nc-orange);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: var(--nc-text);
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+  .section-desc {
+    color: var(--nc-muted);
+    max-width: 600px;
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  /* ── DIVIDER ──────────────────────────────────────── */
+  .divider {
+    height: 1px;
+    background: var(--nc-border);
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── OVERVIEW CARDS ───────────────────────────────── */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--nc-border);
+    border: 1px solid var(--nc-border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+  .overview-card {
+    background: var(--nc-card);
+    padding: 28px 24px;
+  }
+  .overview-icon {
+    width: 40px; height: 40px;
+    background: var(--nc-orange-light);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+    font-size: 18px;
+  }
+  .overview-card h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--nc-text);
+    margin-bottom: 6px;
+  }
+  .overview-card p {
+    font-size: 13px;
+    color: var(--nc-muted);
+    line-height: 1.6;
+  }
+
+  /* ── STEPS ────────────────────────────────────────── */
+  .steps-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0 24px;
+    position: relative;
+  }
+  .step-spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .step-num {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--nc-dark);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step-line {
+    flex: 1;
+    width: 1px;
+    background: var(--nc-step-line);
+    margin: 4px 0;
+  }
+  .step:last-child .step-line { display: none; }
+  .step-body {
+    padding-bottom: 48px;
+  }
+  .step:last-child .step-body { padding-bottom: 0; }
+  .step-tag {
+    display: inline-block;
+    background: var(--nc-orange-light);
+    color: var(--nc-orange);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+    margin-top: 10px;
+  }
+  .step-body h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    color: var(--nc-text);
+  }
+  .step-body p {
+    color: var(--nc-muted);
+    font-size: 14px;
+    line-height: 1.75;
+    max-width: 640px;
+    margin-bottom: 16px;
+  }
+
+  /* ── CODE BLOCK ───────────────────────────────────── */
+  .code-block {
+    background: var(--nc-code-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .code-block-lang {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #706860;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .code-dots {
+    display: flex; gap: 5px;
+  }
+  .code-dots span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+  }
+  .code-block pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--nc-code-text);
+    white-space: pre;
+  }
+  .code-comment { color: #635850; }
+  .code-string { color: #F4A27A; }
+  .code-keyword { color: #C9A0F5; }
+  .code-fn { color: #80D4B8; }
+  .code-param { color: #F4D080; }
+
+  /* ── INFO BOX ─────────────────────────────────────── */
+  .info-box {
+    border-left: 3px solid var(--nc-orange);
+    background: var(--nc-orange-light);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .info-box p {
+    font-size: 13px;
+    color: #7A3010 !important;
+    margin-bottom: 0 !important;
+  }
+  .info-box strong {
+    color: #5C2008;
+  }
+
+  .tip-box {
+    border-left: 3px solid #2B8A5E;
+    background: #EBF7F2;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .tip-box p {
+    font-size: 13px;
+    color: #15553A !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ── VARIABLE CARDS ───────────────────────────────── */
+  .variable-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .variable-card {
+    background: var(--nc-card);
+    border: 1px solid var(--nc-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .variable-card-header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--nc-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .variable-card-icon {
+    width: 32px; height: 32px;
+    background: var(--nc-dark);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .variable-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--nc-text);
+  }
+  .variable-card-sub {
+    font-size: 12px;
+    color: var(--nc-muted);
+  }
+  .variable-card-body {
+    padding: 14px 18px;
+  }
+  .variable-card-body p {
+    font-size: 13px;
+    color: var(--nc-muted);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  /* ── TRIGGER CARDS ────────────────────────────────── */
+  .trigger-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .trigger-card {
+    background: var(--nc-card);
+    border: 1px solid var(--nc-border);
+    border-radius: 12px;
+    padding: 20px 18px;
+    position: relative;
+  }
+  .trigger-pill {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .trigger-pill.built-in { background: #EAF3DE; color: #3B6D11; }
+  .trigger-pill.custom { background: #E6F1FB; color: #185FA5; }
+  .trigger-card h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--nc-text);
+    margin-bottom: 6px;
+  }
+  .trigger-card p {
+    font-size: 13px;
+    color: var(--nc-muted);
+    line-height: 1.6;
+  }
+
+  /* ── TAG CARDS ────────────────────────────────────── */
+  .tag-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--nc-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 24px;
+  }
+  .tag-table th {
+    background: var(--nc-dark);
+    color: #A09890;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .tag-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--nc-border);
+    font-size: 13px;
+    vertical-align: top;
+  }
+  .tag-table tr:last-child td { border-bottom: none; }
+  .tag-table tr:nth-child(even) td { background: #FAFAF8; }
+  .tag-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--nc-orange);
+    white-space: nowrap;
+  }
+  .tag-trigger-badge {
+    display: inline-block;
+    font-size: 10px;
+    background: #F1EFE8;
+    color: #5F5E5A;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ── ANATOMY ──────────────────────────────────────── */
+  .anatomy-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--nc-border);
+    border: 1px solid var(--nc-border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 24px;
+  }
+  .anatomy-item {
+    background: var(--nc-card);
+    padding: 20px 16px;
+  }
+  .anatomy-num {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--nc-border);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .anatomy-item h4 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--nc-text);
+    margin-bottom: 6px;
+  }
+  .anatomy-item p {
+    font-size: 12px;
+    color: var(--nc-muted);
+    line-height: 1.55;
+  }
+
+  /* ── FLOW DIAGRAM ─────────────────────────────────── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 32px 0;
+    overflow-x: auto;
+  }
+  .flow-node {
+    background: var(--nc-card);
+    border: 1px solid var(--nc-border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 130px;
+    flex-shrink: 0;
+  }
+  .flow-node-icon { font-size: 20px; margin-bottom: 6px; }
+  .flow-node h4 {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--nc-text);
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .flow-node p {
+    font-size: 11px;
+    color: var(--nc-muted);
+  }
+  .flow-node.highlight {
+    border-color: var(--nc-orange);
+    background: var(--nc-orange-light);
+  }
+  .flow-node.highlight h4 { color: #7A2E08; }
+  .flow-node.highlight p { color: #A8400E; }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    color: var(--nc-step-line);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  /* ── CHECKLIST ────────────────────────────────────── */
+  .checklist {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--nc-text);
+    line-height: 1.5;
+  }
+  .check-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #EAF3DE;
+    border: 1px solid #C0DD97;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .check-icon::after {
+    content: '';
+    width: 5px; height: 9px;
+    border-right: 2px solid #3B6D11;
+    border-bottom: 2px solid #3B6D11;
+    transform: rotate(45deg) translateY(-1px);
+  }
+
+  /* ── FOOTER ───────────────────────────────────────── */
+  .footer {
+    background: var(--nc-dark);
+    color: #A09890;
+    padding: 40px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .footer-brand {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 300;
+    color: #fff;
+  }
+  .footer-brand span { color: var(--nc-orange); }
+  .footer p {
+    font-size: 12px;
+    color: #504840;
+  }
+  .footer-link {
+    font-size: 13px;
+    color: #FFB89A;
+    text-decoration: none;
+  }
+  .footer-link:hover { text-decoration: underline; }
+
+  @media (max-width: 700px) {
+    .hero { padding: 48px 24px; }
+    section { padding: 48px 24px; }
+    .anatomy-grid { grid-template-columns: repeat(2, 1fr); }
+    .flow { flex-direction: column; gap: 8px; }
+    .flow-arrow { transform: rotate(90deg); }
+    .footer { padding: 32px 24px; flex-direction: column; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span></span> Developer Integration Guide</div>
+  <h1>JS Integration via<br><em>Google Tag Manager</em></h1>
+  <p class="hero-sub">Deploy Netcore Cloud's Web SDK to any website without touching the source code — using GTM as your tag delivery layer.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">4</div>
+      <div class="hero-stat-label">Setup Steps</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">60–65 KB</div>
+      <div class="hero-stat-label">SDK via CDN</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">Zero</div>
+      <div class="hero-stat-label">Source Code Changes</div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<section>
+  <div class="section-label">What & Why</div>
+  <h2 class="section-title">Why use GTM for Netcore CE?</h2>
+  <p class="section-desc">When direct JavaScript embedding isn't possible — due to access restrictions, CMS limitations, or performance concerns — Google Tag Manager bridges the gap.</p>
+
+  <div class="overview-grid">
+    <div class="overview-card">
+      <div class="overview-icon">🚫</div>
+      <h3>No Source Access Needed</h3>
+      <p>Deploy tracking without modifying the website's underlying codebase.</p>
+    </div>
+    <div class="overview-card">
+      <div class="overview-icon">⚡</div>
+      <h3>Faster Page Loads</h3>
+      <p>GTM injects scripts asynchronously, reducing direct impact on page load time.</p>
+    </div>
+    <div class="overview-card">
+      <div class="overview-icon">📦</div>
+      <h3>Centralized Control</h3>
+      <p>Manage all tags, triggers, and variables from a single GTM container.</p>
+    </div>
+    <div class="overview-card">
+      <div class="overview-icon">🔄</div>
+      <h3>Version Rollback</h3>
+      <p>Every container publish creates a version, enabling instant rollback if issues arise.</p>
+    </div>
+  </div>
+
+  <!-- FLOW DIAGRAM -->
+  <div class="flow">
+    <div class="flow-node">
+      <div class="flow-node-icon">🌐</div>
+      <h4>Website / App</h4>
+      <p>User visits</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node highlight">
+      <div class="flow-node-icon">🏷️</div>
+      <h4>Google Tag Manager</h4>
+      <p>Container fires</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <div class="flow-node-icon">📡</div>
+      <h4>Netcore CE JS SDK</h4>
+      <p>Injected by GTM</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <div class="flow-node-icon">📊</div>
+      <h4>Netcore CE Panel</h4>
+      <p>Events received</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STEPS -->
+<section>
+  <div class="section-label">Integration Steps</div>
+  <h2 class="section-title">Setup in 4 steps</h2>
+  <p class="section-desc">Follow these steps to connect your website to Netcore Cloud Customer Engagement via GTM.</p>
+
+  <div class="steps-list">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-tag">Google Tag Manager</div>
+        <h3>Set Up Your GTM Account & Container</h3>
+        <p>Create or access your GTM account and set up a container for the target website. Each container gets a unique GTM ID (e.g. <code style="font-family: var(--font-mono); font-size: 12px; background:#F0EDE8; padding:2px 6px; border-radius:4px;">GTM-XXXXXXX</code>) which is embedded once in your website's <code style="font-family: var(--font-mono); font-size: 12px; background:#F0EDE8; padding:2px 6px; border-radius:4px;">&lt;head&gt;</code> and <code style="font-family: var(--font-mono); font-size: 12px; background:#F0EDE8; padding:2px 6px; border-radius:4px;">&lt;body&gt;</code>.</p>
+        <div class="tip-box"><p><strong>Tip:</strong> Use a single GTM container per domain. Ensure the GTM snippet is placed as high in the <code>&lt;head&gt;</code> as possible for reliable tag firing.</p></div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-tag">Netcore CE Dashboard</div>
+        <h3>Create an Asset on the Netcore CE Panel</h3>
+        <p>Contact the Netcore integration team to provision your asset, or follow the Web SDK integration guide to self-serve. This generates your unique <strong>Panel Identifier</strong> and <strong>Website Identifier</strong> — both required for the JS snippet.</p>
+        <div class="info-box"><p><strong>Note:</strong> Once you access the JS file from the Netcore CE panel, your Panel Identifier and Website Identifier will be pre-populated in the code.</p></div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-tag">GTM → Tags</div>
+        <h3>Copy the SDK Code & Create the Base Tag</h3>
+        <p>In Netcore CE, click "Get Javascript SDK", copy the snippet, and create a new Custom HTML tag in GTM. Prefix the tag name with <strong>Netcore</strong> for easy organization. This is your Base Tag — the foundation for all subsequent tracking.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-lang">HTML — Base Tag</div>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><span class="code-comment">&lt;!-- Place in Custom HTML Tag, trigger: All Pages --&gt;</span>
+<span class="code-keyword">&lt;script</span> <span class="code-param">src</span>=<span class="code-string">'//cdnt.netcoresmartech.com/smartechclient.js'</span><span class="code-keyword">&gt;&lt;/script&gt;</span>
+<span class="code-keyword">&lt;script&gt;</span>
+  <span class="code-fn">smartech</span>(<span class="code-string">'create'</span>, <span class="code-string">'&lt;Smartech Panel Identifier&gt;'</span>);
+  <span class="code-fn">smartech</span>(<span class="code-string">'register'</span>, <span class="code-string">'&lt;Website Identifier&gt;'</span>);
+  <span class="code-fn">smartech</span>(<span class="code-string">'identify'</span>, <span class="code-string">'&lt;User Primary Key — email, mobile, or ID&gt;'</span>);
+<span class="code-keyword">&lt;/script&gt;</span></pre>
+        </div>
+
+        <div class="anatomy-grid">
+          <div class="anatomy-item">
+            <div class="anatomy-num">01</div>
+            <h4>create</h4>
+            <p>Initializes SDK with your unique Panel Identifier</p>
+          </div>
+          <div class="anatomy-item">
+            <div class="anatomy-num">02</div>
+            <h4>register</h4>
+            <p>Associates the session with your Website Identifier</p>
+          </div>
+          <div class="anatomy-item">
+            <div class="anatomy-num">03</div>
+            <h4>identify</h4>
+            <p>Maps the session to a user's primary key. Leave blank for anonymous tracking</p>
+          </div>
+          <div class="anatomy-item">
+            <div class="anatomy-num">04</div>
+            <h4>trigger</h4>
+            <p>Set this tag to fire on <em>All Pages</em> so it loads universally</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-tag">GTM → Variables, Triggers & Tags</div>
+        <h3>Build Variables, Triggers & Event Tags</h3>
+        <p>Define the data you need to capture, set the conditions for tag firing, and deploy tags for each tracking use case. The following sections detail the configuration for each layer.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- VARIABLES -->
+<section>
+  <div class="section-label">Layer 1 — Variables</div>
+  <h2 class="section-title">Capture dynamic user data</h2>
+  <p class="section-desc">Variables extract values from the page at runtime. Define them once and reference them across all tags using double-brace syntax: <code style="font-family:var(--font-mono);font-size:13px;background:#F0EDE8;padding:2px 6px;border-radius:4px;">{{Variable_Name}}</code></p>
+
+  <div class="variable-grid">
+
+    <div class="variable-card">
+      <div class="variable-card-header">
+        <div class="variable-card-icon">✉️</div>
+        <div>
+          <div class="variable-card-title">Email ID</div>
+          <div class="variable-card-sub">Custom JavaScript Variable</div>
+        </div>
+      </div>
+      <div class="variable-card-body">
+        <p>Dynamically captures the email entered in any text field across the site — login, registration, newsletter, etc.</p>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-lang">JavaScript</div>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><span class="code-keyword">function</span>() {
+  <span class="code-keyword">try</span> {
+    <span class="code-keyword">var</span> <span class="code-fn">searchEmail</span> = <span class="code-keyword">function</span>(input) {
+      <span class="code-keyword">for</span> (i=<span class="code-param">0</span>; i&lt;input.length; i++) {
+        email = input[i].value;
+        <span class="code-keyword">if</span>(email.match(
+          <span class="code-string">/^([\w-]+...@...\....)$/i</span>
+        )){ <span class="code-keyword">return</span> email; }
+      }
+    }
+    <span class="code-keyword">return</span> <span class="code-fn">searchEmail</span>({{Form Element}});
+  } <span class="code-keyword">catch</span>(e) { <span class="code-keyword">return</span> <span class="code-string">""</span>; }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="variable-card">
+      <div class="variable-card-header">
+        <div class="variable-card-icon">📱</div>
+        <div>
+          <div class="variable-card-title">Mobile Number</div>
+          <div class="variable-card-sub">Custom JavaScript Variable</div>
+        </div>
+      </div>
+      <div class="variable-card-body">
+        <p>Captures 10-digit Indian mobile numbers entered anywhere across the website using regex-based matching.</p>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-lang">JavaScript</div>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><span class="code-keyword">function</span>() {
+  <span class="code-keyword">try</span> {
+    <span class="code-keyword">var</span> <span class="code-fn">searchMobile</span> = <span class="code-keyword">function</span>(input){
+      <span class="code-keyword">for</span>(i=<span class="code-param">0</span>; i&lt;input.length; i++){
+        mobile = input[i].value;
+        <span class="code-keyword">if</span>(mobile.match(
+          <span class="code-string">/^(\+91[\-\s]?)?[0]?(91)?[789]\d{9}$/i</span>
+        )){ <span class="code-keyword">return</span> mobile; }
+      }
+    }
+    <span class="code-keyword">return</span> <span class="code-fn">searchMobile</span>({{Form Element}});
+  } <span class="code-keyword">catch</span>(e) { <span class="code-keyword">return</span> <span class="code-string">""</span>; }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="variable-card">
+      <div class="variable-card-header">
+        <div class="variable-card-icon">👤</div>
+        <div>
+          <div class="variable-card-title">User Name / Demographics</div>
+          <div class="variable-card-sub">DOM Element Variable</div>
+        </div>
+      </div>
+      <div class="variable-card-body">
+        <p>Registration-specific fields (name, age, gender) are captured via their DOM element ID or CSS Selector — inspect page source to identify the right selector.</p>
+        <div class="info-box"><p>Use <strong>Element ID</strong> when available. Fall back to <strong>CSS Selector</strong> if no ID is assigned to the element.</p></div>
+      </div>
+    </div>
+
+    <div class="variable-card">
+      <div class="variable-card-header">
+        <div class="variable-card-icon">🔘</div>
+        <div>
+          <div class="variable-card-title">Radio Button Selection</div>
+          <div class="variable-card-sub">Click ID / Form ID Variable</div>
+        </div>
+      </div>
+      <div class="variable-card-body">
+        <p>Captures the user's selection from radio button groups (e.g., gender). Configured using Click ID or Form ID based on your website's implementation.</p>
+        <div class="tip-box"><p>Enable all GTM built-in click variables before configuring radio-button click tracking.</p></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TRIGGERS -->
+<section>
+  <div class="section-label">Layer 2 — Triggers</div>
+  <h2 class="section-title">Define when tags fire</h2>
+  <p class="section-desc">Triggers are the conditions that determine when a tag is deployed. Each event tag needs at least one trigger.</p>
+
+  <div class="trigger-grid">
+    <div class="trigger-card">
+      <div class="trigger-pill built-in">Built-in</div>
+      <h4>All Pages</h4>
+      <p>GTM's default trigger. Fires on every page load. Used for the Base Tag and Page Browse Tag.</p>
+    </div>
+    <div class="trigger-card">
+      <div class="trigger-pill custom">Custom</div>
+      <h4>Clickable Links</h4>
+      <p>Fires when a user clicks any internal or external hyperlink. Use <em>Click → Just Links</em> type. Enable all click variables first.</p>
+    </div>
+    <div class="trigger-card">
+      <div class="trigger-pill custom">Custom</div>
+      <h4>All Elements Click</h4>
+      <p>Tracks clicks on any specified page element (buttons, banners, CTAs) with custom filter conditions.</p>
+    </div>
+    <div class="trigger-card">
+      <div class="trigger-pill custom">Custom</div>
+      <h4>Form Submission</h4>
+      <p>Fires on contact form, registration, or any data entry form submit. Ideal for capturing lead data.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TAGS -->
+<section>
+  <div class="section-label">Layer 3 — Event Tags</div>
+  <h2 class="section-title">Deploy tracking for every use case</h2>
+  <p class="section-desc">All Netcore CE tracking tags use the <strong>Custom HTML</strong> tag type in GTM. Below is the complete reference for standard use cases.</p>
+
+  <table class="tag-table">
+    <thead>
+      <tr>
+        <th>Tag Name</th>
+        <th>Use Case</th>
+        <th>Trigger</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="tag-name">Netcore CE Base Tag</div></td>
+        <td>SDK initialization; connects website to Netcore CE panel</td>
+        <td><span class="tag-trigger-badge">All Pages</span></td>
+        <td>Must be the first tag. Includes <code style="font-family:var(--font-mono);font-size:11px;">create</code>, <code style="font-family:var(--font-mono);font-size:11px;">register</code>, <code style="font-family:var(--font-mono);font-size:11px;">identify</code> calls.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE Page Browse</div></td>
+        <td>Tracks site navigation &amp; time spent per page</td>
+        <td><span class="tag-trigger-badge">All Pages</span></td>
+        <td>Set tag sequencing to fire after Base Tag.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE User Registration</div></td>
+        <td>Captures new customer sign-up data to a CE list</td>
+        <td><span class="tag-trigger-badge">Form Submit</span></td>
+        <td>Pass List ID and form activity. Uses <code style="font-family:var(--font-mono);font-size:11px;">{{Email_Input}}</code>, <code style="font-family:var(--font-mono);font-size:11px;">{{Mobile_Input}}</code>.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE Add To Cart</div></td>
+        <td>E-commerce: product added to cart event</td>
+        <td><span class="tag-trigger-badge">Element Click</span></td>
+        <td>Custom event with product data payload.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE Remove From Cart</div></td>
+        <td>E-commerce: product removed from cart event</td>
+        <td><span class="tag-trigger-badge">Element Click</span></td>
+        <td>Mirror of Add To Cart with remove action flag.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE Checkout</div></td>
+        <td>E-commerce: checkout initiated event</td>
+        <td><span class="tag-trigger-badge">Element Click</span></td>
+        <td>Capture cart value and item count at time of checkout.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE Page Scroll</div></td>
+        <td>Tracks how far users scroll down each page</td>
+        <td><span class="tag-trigger-badge">Custom Event</span></td>
+        <td>Import a scroll-tracking recipe container from the GTM community.</td>
+      </tr>
+      <tr>
+        <td><div class="tag-name">Netcore CE Newsletter</div></td>
+        <td>Captures e-newsletter subscription data</td>
+        <td><span class="tag-trigger-badge">Form Submit</span></td>
+        <td>Uses <code style="font-family:var(--font-mono);font-size:11px;">{{Email_Input}}</code>. Feeds into newsletter list for email campaigns.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="divider"></div>
+
+<!-- PREVIEW & PUBLISH -->
+<section>
+  <div class="section-label">Deploy & Validate</div>
+  <h2 class="section-title">Test before you go live</h2>
+  <p class="section-desc">GTM's built-in Preview & Debug mode lets you validate every tag, trigger, and variable in your own browser before publishing to all users.</p>
+
+  <ul class="checklist">
+    <li>
+      <div class="check-icon"></div>
+      <span>Enter <strong>Preview Mode</strong> in GTM — only your browser runs the debug container.</span>
+    </li>
+    <li>
+      <div class="check-icon"></div>
+      <span>GTM highlights any tag or trigger errors before you can commit the container.</span>
+    </li>
+    <li>
+      <div class="check-icon"></div>
+      <span>Verify tokens appear on your <strong>Netcore CE Dashboard</strong> after browsing tracked pages.</span>
+    </li>
+    <li>
+      <div class="check-icon"></div>
+      <span>Test each stage independently — after variables, after triggers, and after each individual tag.</span>
+    </li>
+    <li>
+      <div class="check-icon"></div>
+      <span><strong>Publish the container</strong> once all checks pass. All tags are now live for all users.</span>
+    </li>
+    <li>
+      <div class="check-icon"></div>
+      <span>Use <strong>version numbers</strong> for every publish. Roll back instantly if issues are found in production.</span>
+    </li>
+  </ul>
+
+  <div class="info-box" style="margin-top:28px;">
+    <p><strong>Platform Notes:</strong> For <strong>Shopify</strong> sites, only event tracking can be configured via GTM. For <strong>Magento</strong> sites, both event tracking and BPN (Browser Push Notifications) can be configured via GTM.</p>
+  </div>
+
+  <div class="tip-box" style="margin-top:12px;">
+    <p><strong>SDK Size:</strong> The JavaScript file is 150 KB on the Netcore server and 60–65 KB when served via CDN. Once integrated, you'll see tokens arriving on your Netcore CE dashboard immediately.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <div class="footer-brand">Netcore <span>Cloud</span></div>
+    <p style="margin-top:6px;">Customer Engagement Platform — Developer Documentation</p>
+  </div>
+  <div style="text-align:right;">
+    <a href="https://developer.netcorecloud.com/docs/js-integration-via-gtm" class="footer-link">Full Developer Docs →</a>
+    <p style="margin-top:6px;">Questions? Contact <a href="mailto:cs@netcorecloud.com" class="footer-link">cs@netcorecloud.com</a></p>
+  </div>
+</div>
+
+</body>
+</html>
